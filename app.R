@@ -6,8 +6,8 @@ up_date <- format(as.Date(readLines(file.path(dpath, 'vaccine_adverse_reactions.
 
 ui <- fluidPage(
 
-    h2('UK Covid Vaccines Adverse Reactions'), br(),
-    
+    titlePanel('UK Covid Vaccines Adverse Reactions'), br(),
+
     shinyWidgets::radioGroupButtons('rdb_grp', 'AGGREGATION:', 
         choices = c('None', 'Group', 'Class', 'Brand'),
         individual = TRUE,
