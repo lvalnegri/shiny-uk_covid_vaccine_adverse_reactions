@@ -6,20 +6,16 @@ up_date <- format(as.Date(readLines(file.path(dpath, 'vaccine_adverse_reactions.
 
 ui <- fluidPage(
 
-    h2('UK Covid Vaccines Adverse Reactions'),
+    h2('UK Covid Vaccines Adverse Reactions'), br(),
     
-    tags$br(),
-
     shinyWidgets::radioGroupButtons('rdb_grp', 'AGGREGATION:', 
-        choices = c('None', 'NEC', 'SOC', 'Brand'),
+        choices = c('None', 'Group', 'Class', 'Brand'),
         individual = TRUE,
         checkIcon = list( 
             yes = tags$i(class = "fa fa-circle", style = "color: steelblue"),
             no = tags$i(class = "fa fa-circle-o", style = "color: steelblue")
         )
-    ),
-
-    tags$br(),
+    ), br(),
 
     DTOutput('out_tbl')
 
@@ -31,16 +27,16 @@ server <- function(input, output, session){
 
         switch(input$rdb_grp,
 
-            'NEC' = { 
-                y <- dts[, .(Total = sum(Total), Fatal = sum(Fatal)), .(Brand, SOC, NEC)] %>% 
-                    dcast(SOC+NEC~Brand, value.var = c('Total', 'Fatal'), fill = 0)
-                setcolorder(y, c('SOC', 'NEC', 'Total_AstraZ', 'Fatal_AstraZ', 'Total_Pfizer', 'Fatal_Pfizer'))
+            'Group' = { 
+                y <- dts[, .(Total = sum(Total), Fatal = sum(Fatal)), .(Brand, Class, Group)] %>% 
+                    dcast(Class+Group~Brand, value.var = c('Total', 'Fatal'), fill = 0)
+                setcolorder(y, c('Class', 'Group', 'Total_AstraZeneca', 'Fatal_AstraZeneca', 'Total_Pfizer', 'Fatal_Pfizer'))
                 sketch <- withTags(table(
                         class = 'display',
                         thead(
                             tr(
-                                th(rowspan = 2, 'SOC'),
-                                th(rowspan = 2, 'NEC'),
+                                th(rowspan = 2, 'Class'),
+                                th(rowspan = 2, 'Group'),
                                 th(colspan = 2, span('AstraZeneca', style = "color:gold; font-family:'times'; font-size:20pt; display:table; margin:0 auto;") ),
                                 th(colspan = 2, span('Pfizer', style = "color:cyan; font-family:'times'; font-size:20pt; display:table; margin:0 auto;") )
                             ),
@@ -49,15 +45,15 @@ server <- function(input, output, session){
                 ))
             },
 
-            'SOC' = { 
-                y <- dts[, .(Total = sum(Total), Fatal = sum(Fatal)), .(Brand, SOC)] %>% 
-                    dcast(SOC~Brand, value.var = c('Total', 'Fatal'), fill = 0)
-                setcolorder(y, c('SOC', 'Total_AstraZ', 'Fatal_AstraZ', 'Total_Pfizer', 'Fatal_Pfizer'))
+            'Class' = { 
+                y <- dts[, .(Total = sum(Total), Fatal = sum(Fatal)), .(Brand, Class)] %>% 
+                    dcast(Class~Brand, value.var = c('Total', 'Fatal'), fill = 0)
+                setcolorder(y, c('Class', 'Total_AstraZeneca', 'Fatal_AstraZeneca', 'Total_Pfizer', 'Fatal_Pfizer'))
                 sketch <- withTags(table(
                         class = 'display',
                         thead(
                             tr(
-                                th(rowspan = 2, 'SOC'),
+                                th(rowspan = 2, 'Class'),
                                 th(colspan = 2, span('AstraZeneca', style = "color:gold; font-family:'times'; font-size:20pt; display:table; margin:0 auto;") ),
                                 th(colspan = 2, span('Pfizer', style = "color:cyan; font-family:'times'; font-size:20pt; display:table; margin:0 auto;") )
                             ),
@@ -78,18 +74,18 @@ server <- function(input, output, session){
             },
 
             { 
-                y <- dcast(dts, SOC+NEC+Reaction~Brand, value.var = c('Total', 'Fatal', 'rnk'), fill = 0)
+                y <- dcast(dts, Class+Group+Reaction~Brand, value.var = c('Total', 'Fatal', 'rnk'), fill = 0)
                 setcolorder(y, c(
-                    'SOC', 'NEC', 'Reaction', 
-                    'Total_AstraZ', 'Fatal_AstraZ', 'rnk_AstraZ',
+                    'Class', 'Group', 'Reaction', 
+                    'Total_AstraZeneca', 'Fatal_AstraZeneca', 'rnk_AstraZeneca',
                     'Total_Pfizer', 'Fatal_Pfizer', 'rnk_Pfizer'
                 ))
                 sketch <- withTags(table(
                         class = 'display',
                         thead(
                             tr(
-                                th(rowspan = 2, 'SOC'),
-                                th(rowspan = 2, 'NEC'),
+                                th(rowspan = 2, 'Class'),
+                                th(rowspan = 2, 'Group'),
                                 th(rowspan = 2, 'Reaction'),
                                 th(colspan = 3, span('AstraZeneca', style = "color:gold; font-family:'times'; font-size:20pt; display:table; margin:0 auto;") ),
                                 th(colspan = 3, span('Pfizer', style = "color:cyan; font-family:'times'; font-size:20pt; display:table; margin:0 auto;") )
@@ -110,10 +106,11 @@ server <- function(input, output, session){
             extensions = c('Buttons', 'Scroller'),
             caption = tags$caption(
                 style = 'caption-side:bottom;text-align:right;font-size:12px',
-                withTags(div(HTML(paste(
+                withTags(div(HTML(paste0(
                     '<em>Data From ',
                     '<a href="https://www.gov.uk/government/publications/coronavirus-covid-19-vaccine-adverse-reactions/coronavirus-vaccine-summary-of-yellow-card-reporting">MHRA UK</a>. ',
-                    'Last Updated:', up_date, '<em>'
+                    'Last Updated: ', up_date,
+                    ' (App code on <a href=" https://github.com/lvalnegri/shiny-uk_covid_vaccine_adverse_reactions">Github</a>)<em>'
                 ))))
             ),
             options = list(
@@ -134,9 +131,9 @@ server <- function(input, output, session){
         )
 
         if(input$rdb_grp == 'Brand'){        
-           dt <- dt %>%  formatCurrency(c('Total', 'Fatal'), '', digits = 0)
+           dt <- dt %>% formatCurrency(c('Total', 'Fatal'), '', digits = 0)
         } else {
-           dt <- dt %>%  formatCurrency(c('Total_AstraZ', 'Fatal_AstraZ', 'Total_Pfizer', 'Fatal_Pfizer'), '', digits = 0)
+           dt <- dt %>% formatCurrency(c('Total_AstraZeneca', 'Fatal_AstraZeneca', 'Total_Pfizer', 'Fatal_Pfizer'), '', digits = 0)
         }
 
         dt
