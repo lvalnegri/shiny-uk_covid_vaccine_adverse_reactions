@@ -66,7 +66,7 @@ server <- function(input, output, session){
             },
 
             'Brand' = { 
-                y <- dts[, .(Total = sum(Total), Fatal = sum(Fatal)), .(Brand)] 
+                y <- dts[, .(Total = sum(Total), Fatal = sum(Fatal)), Brand] 
                 sketch <- withTags(table(
                     class = 'display',
                     thead( tr( th(colspan = 1, 'Brand'), th(colspan = 1, 'Total'), th(colspan = 1, 'Fatal') ))
@@ -96,7 +96,8 @@ server <- function(input, output, session){
             }
         
         )
-
+        
+        y[y == 0] <- NA
         dt <- datatable(
             y, 
             rownames = FALSE, 
