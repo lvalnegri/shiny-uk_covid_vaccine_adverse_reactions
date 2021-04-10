@@ -127,7 +127,7 @@ server <- function(input, output, session){
                 ))))
             ),
             options = list(
-#                scrollX = TRUE,
+                scrollX = TRUE,
                 scrollY = 400,
                 scroller = TRUE,
                 ordering = TRUE,
