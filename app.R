@@ -128,12 +128,13 @@ server <- function(input, output, session){
             ),
             options = list(
                 scrollX = TRUE,
-                scrollY = 400,
+                scrollY = 600,
                 scroller = TRUE,
                 ordering = TRUE,
                 searchHighlight = TRUE,
                 deferRender = TRUE,
-                buttons = c('copy', 'csv', 'print'),
+                # buttons = c('copy', 'csv', 'print'),
+                buttons = list( 'copy', 'print', list( extend = 'collection', buttons = c('csv', 'excel', 'pdf'), text = 'Download') ),
                 initComplete = JS(
                     "function(settings, json) {",
                         "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'text-align': 'center', 'font-size': '120%'});",
